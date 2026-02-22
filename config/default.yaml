@@ -1,1 +1,85 @@
+# ============================================================
+#  FedCTX-IoT — Default Configuration
+# ============================================================
 
+# ----- Dataset ---------------------------------------------------
+dataset:
+  name: ciciot2023           # ciciot2023 | edge_iiotset | nbaiot
+  raw_dir: data/raw
+  processed_dir: data/processed
+  partitioned_dir: data/partitioned
+  sequence_length: 32        # N consecutive flows per sample
+  test_split: 0.2
+  val_split: 0.1
+  random_seed: 42
+
+# ----- Federated Learning ----------------------------------------
+federated:
+  n_clients: 8
+  client_fraction: 0.5       # fraction selected per round
+  n_rounds: 100
+  local_epochs: 5
+  dirichlet_alpha: 0.5       # non-IID concentration (null = natural)
+
+# ----- Model -----------------------------------------------------
+model:
+  # CNN backbone
+  cnn_kernels: [3, 5, 7]
+  cnn_embedding_dim: 128
+  cnn_dropout: 0.1
+  depthwise_separable: true
+
+  # Transformer encoder
+  transformer_layers: 4
+  n_heads: 8
+  linformer_rank: 64
+  ffn_expansion: 4
+  transformer_dropout: 0.1
+
+  # Classifier head
+  n_classes: 8               # set to 2 for binary
+  classifier_hidden: 256
+
+# ----- Training --------------------------------------------------
+training:
+  optimiser: adamw
+  learning_rate: 1.0e-3
+  lr_schedule: cosine        # cosine | step | none
+  weight_decay: 1.0e-2
+  batch_size: 256
+  focal_loss_gamma: 2.0      # 0 = standard cross-entropy
+
+# ----- Differential Privacy --------------------------------------
+privacy:
+  enabled: true
+  epsilon: 3.0
+  delta: 1.0e-5
+  clip_norm: 1.0
+  noise_multiplier: 1.1
+  accounting: rdp            # rdp | gdp
+
+# ----- Gradient Compression --------------------------------------
+compression:
+  enabled: true
+  top_k_ratio: 0.1           # fraction of gradients to transmit
+  error_feedback: true
+
+# ----- Explainability --------------------------------------------
+xai:
+  attention_pathway: true    # Pathway 1 (always on)
+  shap_pathway: true         # Pathway 2 (on-demand)
+  shap_background_samples: 100
+  n_top_features: 15
+
+# ----- Evaluation ------------------------------------------------
+evaluation:
+  metrics: [accuracy, f1_macro, precision_macro, recall_macro, auc_roc]
+  mi_attack: true            # membership inference attack evaluation
+  n_shadow_models: 4
+
+# ----- Output ----------------------------------------------------
+output:
+  results_dir: results
+  checkpoint_freq: 10        # save checkpoint every N rounds
+  tensorboard: true
+  log_level: INFO
